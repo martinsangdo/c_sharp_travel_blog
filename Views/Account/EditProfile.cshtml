@@ -1,0 +1,77 @@
+@model TravelBlog.ViewModels.EditProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="tb-page-header">
+    <div class="container">
+        <h1 class="tb-page-title">Edit Profile</h1>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="tb-form-card">
+                <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(Model.ExistingAvatarUrl))
+                        {
+                            <img src="@Model.ExistingAvatarUrl" class="tb-avatar-lg mb-2" id="avatarPreview" alt="Avatar" />
+                        }
+                        else
+                        {
+                            <span class="tb-avatar-placeholder-lg mb-2" id="avatarPreview">
+                                @(AuthHelper.GetFullName(Context.Session)[0])
+                            </span>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label fw-semibold">Full Name *</label>
+                        <input asp-for="FullName" class="form-control tb-input" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Bio" class="form-label fw-semibold">Bio</label>
+                        <textarea asp-for="Bio" class="form-control tb-input" rows="3"
+                                  placeholder="Tell others about your travels..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Avatar" class="form-label fw-semibold">Profile Picture</label>
+                        <input asp-for="Avatar" type="file" class="form-control tb-input" accept="image/*" id="avatarInput" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-tb">Save Changes</button>
+                        <a asp-action="Profile" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('avatarInput').addEventListener('change', function() {
+    const preview = document.getElementById('avatarPreview');
+    if (this.files[0]) {
+        const url = URL.createObjectURL(this.files[0]);
+        if (preview.tagName === 'IMG') {
+            preview.src = url;
+        } else {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'tb-avatar-lg mb-2';
+            img.id = 'avatarPreview';
+            preview.replaceWith(img);
+        }
+    }
+});
+</script>
+}

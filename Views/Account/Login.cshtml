@@ -1,0 +1,48 @@
+@* Login *@
+@model TravelBlog.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="tb-auth-page">
+    <div class="tb-auth-card">
+        <div class="text-center mb-4">
+            <span class="tb-logo-icon fa-2x"><i class="fa-solid fa-earth-asia"></i></span>
+            <h2 class="tb-auth-title mt-2">Welcome Back</h2>
+            <p class="text-muted">Sign in to your TravelBlog account</p>
+        </div>
+
+        <form asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                    <input asp-for="Email" class="form-control tb-input" placeholder="you@example.com" autocomplete="email" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                    <input asp-for="Password" class="form-control tb-input" type="password" placeholder="••••••••" autocomplete="current-password" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-tb w-100 mb-3">
+                <i class="fa fa-right-to-bracket me-2"></i>Sign In
+            </button>
+
+            <p class="text-center text-muted small mb-0">
+                Don't have an account?
+                <a asp-action="Register" class="tb-link">Create one free</a>
+            </p>
+        </form>
+    </div>
+</div>

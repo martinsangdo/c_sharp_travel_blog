@@ -1,0 +1,92 @@
+@model TravelBlog.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    var user = Model.User;
+}
+
+<div class="tb-page-header">
+    <div class="container">
+        <div class="d-flex align-items-center gap-4">
+            @if (!string.IsNullOrEmpty(user.AvatarUrl))
+            {
+                <img src="@user.AvatarUrl" class="tb-avatar-lg" alt="@user.Username" />
+            }
+            else
+            {
+                <span class="tb-avatar-placeholder-lg">@(user.FullName?[0] ?? user.Username[0])</span>
+            }
+            <div>
+                <h1 class="tb-page-title mb-1">@(user.FullName ?? user.Username)</h1>
+                <p class="text-muted mb-1">@@@user.Username · @user.Role</p>
+                @if (!string.IsNullOrEmpty(user.Bio))
+                {
+                    <p class="mb-0">@user.Bio</p>
+                }
+            </div>
+            <a asp-action="EditProfile" class="btn btn-tb-outline ms-auto">
+                <i class="fa fa-pen me-1"></i>Edit Profile
+            </a>
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-auto">
+                <div class="tb-stat"><strong>@Model.TotalBlogs</strong><span>Blogs</span></div>
+            </div>
+            <div class="col-auto">
+                <div class="tb-stat"><strong>@Model.TotalViews</strong><span>Total Views</span></div>
+            </div>
+            <div class="col-auto">
+                <div class="tb-stat"><strong>@Model.TotalComments</strong><span>Comments</span></div>
+            </div>
+            <div class="col-auto">
+                <div class="tb-stat"><strong>@user.CreatedAt.ToString("MMM yyyy")</strong><span>Member since</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">My Blog Posts</h4>
+        <a asp-controller="Blog" asp-action="Create" class="btn btn-tb btn-sm">
+            <i class="fa fa-plus me-1"></i>New Blog
+        </a>
+    </div>
+
+    @if (Model.MyBlogs.Any())
+    {
+        <div class="row g-4">
+            @foreach (var blog in Model.MyBlogs)
+            {
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <partial name="_BlogCard" model="blog" />
+                        <div class="tb-card-actions">
+                            <a asp-controller="Blog" asp-action="Edit" asp-route-id="@blog.Id"
+                               class="btn btn-sm btn-light"><i class="fa fa-pen"></i></a>
+                            <form asp-controller="Blog" asp-action="ToggleVisibility" asp-route-id="@blog.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-light" title="@(blog.IsPublic ? "Make Private" : "Make Public")">
+                                    <i class="fa @(blog.IsPublic ? "fa-eye" : "fa-eye-slash")"></i>
+                                </button>
+                            </form>
+                            <form asp-controller="Blog" asp-action="Delete" asp-route-id="@blog.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this blog?')">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="tb-empty-state text-center py-5">
+            <i class="fa fa-pen-to-square fa-3x mb-3"></i>
+            <h5>No blogs yet</h5>
+            <p class="text-muted">Share your first travel story with the world!</p>
+            <a asp-controller="Blog" asp-action="Create" class="btn btn-tb">Write Your First Blog</a>
+        </div>
+    }
+</div>

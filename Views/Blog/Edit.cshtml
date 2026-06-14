@@ -1,0 +1,106 @@
+@model TravelBlog.ViewModels.EditBlogViewModel
+@{
+    ViewData["Title"] = "Edit Blog";
+}
+
+<div class="tb-page-header">
+    <div class="container">
+        <h1 class="tb-page-title"><i class="fa fa-pen me-2"></i>Edit Blog Post</h1>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="tb-form-card">
+                <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Title *</label>
+                        <input asp-for="Title" class="form-control tb-input" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label asp-for="Destination" class="form-label fw-semibold">Destination</label>
+                            <input asp-for="Destination" class="form-control tb-input" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Tags" class="form-label fw-semibold">Tags</label>
+                            <input asp-for="Tags" class="form-control tb-input" placeholder="beach, food, culture" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ShortDescription" class="form-label fw-semibold">Short Description *</label>
+                        <textarea asp-for="ShortDescription" class="form-control tb-input" rows="2"></textarea>
+                        <span asp-validation-for="ShortDescription" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LongDescription" class="form-label fw-semibold">Content *</label>
+                        <textarea asp-for="LongDescription" class="form-control tb-input" rows="12"></textarea>
+                        <span asp-validation-for="LongDescription" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Cover image -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Cover Image</label>
+                        @if (!string.IsNullOrEmpty(Model.ExistingCoverImageUrl))
+                        {
+                            <div class="mb-2">
+                                <img src="@Model.ExistingCoverImageUrl" class="img-thumbnail" style="max-height:150px" alt="Current cover" />
+                                <div class="small text-muted mt-1">Upload a new image to replace</div>
+                            </div>
+                        }
+                        <input asp-for="CoverImage" type="file" class="form-control tb-input" accept="image/*" />
+                    </div>
+
+                    <!-- Existing gallery images -->
+                    @if (Model.ExistingImages.Any())
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Current Gallery Images</label>
+                            <div class="row g-2">
+                                @foreach (var img in Model.ExistingImages)
+                                {
+                                    <div class="col-3">
+                                        <div class="position-relative">
+                                            <img src="@img.ImageUrl" class="img-thumbnail w-100" style="height:80px;object-fit:cover" alt="gallery" />
+                                            <div class="form-check position-absolute top-0 start-0 m-1">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="DeleteImageIds" value="@img.Id"
+                                                       title="Check to delete" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">Check images to delete them</small>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="AdditionalImages" class="form-label fw-semibold">Add More Images</label>
+                        <input asp-for="AdditionalImages" type="file" class="form-control tb-input" accept="image/*" multiple />
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsPublic" class="form-check-input" type="checkbox" role="switch" />
+                            <label asp-for="IsPublic" class="form-check-label">Make this post <strong>public</strong></label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-tb"><i class="fa fa-floppy-disk me-1"></i>Save Changes</button>
+                        <a asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

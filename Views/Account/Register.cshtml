@@ -1,0 +1,69 @@
+@model TravelBlog.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="tb-auth-page">
+    <div class="tb-auth-card">
+        <div class="text-center mb-4">
+            <span class="tb-logo-icon fa-2x"><i class="fa-solid fa-earth-asia"></i></span>
+            <h2 class="tb-auth-title mt-2">Join TravelBlog</h2>
+            <p class="text-muted">Start sharing your travel stories today</p>
+        </div>
+
+        <form asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                    <input asp-for="FullName" class="form-control tb-input" placeholder="Jane Doe" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Username" class="form-label fw-semibold">Username</label>
+                    <input asp-for="Username" class="form-control tb-input" placeholder="janedoe" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                    <input asp-for="Email" class="form-control tb-input" placeholder="you@example.com" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                        <input asp-for="Password" class="form-control tb-input" type="password" placeholder="Min 6 characters" />
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                        <input asp-for="ConfirmPassword" class="form-control tb-input" type="password" placeholder="Repeat password" />
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-tb w-100 mb-3">
+                <i class="fa fa-user-plus me-2"></i>Create Account
+            </button>
+
+            <p class="text-center text-muted small mb-0">
+                Already have an account?
+                <a asp-action="Login" class="tb-link">Sign in</a>
+            </p>
+        </form>
+    </div>
+</div>

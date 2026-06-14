@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TravelBlog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg tb-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+            <span class="tb-logo-icon"><i class="fa-solid fa-earth-asia"></i></span>
+            <span class="tb-logo-text">Travel<strong>Blog</strong></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Blog" asp-action="Index">Explore</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                @if (Context.Session.GetInt32("UserId").HasValue)
+                {
+                    var avatar = Context.Session.GetString("UserAvatar");
+                    var name = Context.Session.GetString("FullName") ?? "User";
+                    var isAdmin = Context.Session.GetString("UserRole") == "Admin";
+
+                    <li class="nav-item">
+                        <a class="btn btn-tb-outline btn-sm" asp-controller="Blog" asp-action="Create">
+                            <i class="fa fa-plus me-1"></i> Write
+                        </a>
+                    </li>
+                    @if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link tb-admin-badge" asp-controller="Admin" asp-action="Index">
+                                <i class="fa fa-shield-halved me-1"></i>Admin
+                            </a>
+                        </li>
+                    }
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+                            @if (!string.IsNullOrEmpty(avatar))
+                            {
+                                <img src="@avatar" class="tb-avatar-xs" alt="avatar" />
+                            }
+                            else
+                            {
+                                <span class="tb-avatar-placeholder-xs">@name[0]</span>
+                            }
+                            <span class="d-none d-md-inline">@name</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fa fa-user me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile"><i class="fa fa-pen me-2"></i>Edit Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout"><i class="fa fa-right-from-bracket me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-tb btn-sm" asp-controller="Account" asp-action="Register">Sign Up</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Flash messages -->
+<div class="container mt-3" id="flash-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show tb-alert" role="alert">
+            <i class="fa fa-circle-check me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show tb-alert" role="alert">
+            <i class="fa fa-circle-exclamation me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+</div>
+
+<main>
+    @RenderBody()
+</main>
+
+<!-- Footer -->
+<footer class="tb-footer mt-5">
+    <div class="container">
+        <div class="row gy-4">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="tb-logo-icon"><i class="fa-solid fa-earth-asia"></i></span>
+                    <span class="tb-logo-text">Travel<strong>Blog</strong></span>
+                </div>
+                <p class="text-muted small">Share your travel stories with the world. Discover amazing destinations through the eyes of fellow travelers.</p>
+            </div>
+            <div class="col-md-2">
+                <h6 class="fw-semibold mb-3">Explore</h6>
+                <ul class="list-unstyled small">
+                    <li><a asp-controller="Blog" asp-action="Index" class="tb-footer-link">All Blogs</a></li>
+                    <li><a asp-controller="Blog" asp-action="Index" asp-route-destination="Asia" class="tb-footer-link">Asia</a></li>
+                    <li><a asp-controller="Blog" asp-action="Index" asp-route-destination="Europe" class="tb-footer-link">Europe</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <h6 class="fw-semibold mb-3">Account</h6>
+                <ul class="list-unstyled small">
+                    <li><a asp-controller="Account" asp-action="Register" class="tb-footer-link">Sign Up</a></li>
+                    <li><a asp-controller="Account" asp-action="Login" class="tb-footer-link">Login</a></li>
+                    <li><a asp-controller="Blog" asp-action="Create" class="tb-footer-link">Write a Blog</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-semibold mb-3">Stay Inspired</h6>
+                <p class="small text-muted mb-2">New stories from travelers every day.</p>
+            </div>
+        </div>
+        <hr class="tb-footer-divider">
+        <p class="text-center small text-muted mb-0">&copy; @DateTime.Now.Year TravelBlog. Built with ASP.NET Core MVC.</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

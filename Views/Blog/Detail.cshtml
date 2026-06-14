@@ -1,0 +1,212 @@
+@model TravelBlog.ViewModels.BlogDetailViewModel
+@{
+    ViewData["Title"] = Model.Blog.Title;
+    var blog = Model.Blog;
+    var isLoggedIn = Context.Session.GetInt32("UserId").HasValue;
+}
+
+<article class="tb-article">
+    <!-- Header -->
+    <div class="tb-article-header">
+        @if (!string.IsNullOrEmpty(blog.CoverImageUrl))
+        {
+            <div class="tb-article-hero-img" style="background-image:url('@blog.CoverImageUrl')">
+                <div class="tb-article-hero-overlay"></div>
+            </div>
+        }
+        <div class="container position-relative z-1">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    @if (!string.IsNullOrEmpty(blog.Destination))
+                    {
+                        <a asp-controller="Blog" asp-action="Index" asp-route-destination="@blog.Destination"
+                           class="tb-dest-tag mb-3 d-inline-block">
+                            <i class="fa fa-location-dot me-1"></i>@blog.Destination
+                        </a>
+                    }
+                    <h1 class="tb-article-title @(!string.IsNullOrEmpty(blog.CoverImageUrl) ? "text-white" : "")">@blog.Title</h1>
+                    <p class="tb-article-lead @(!string.IsNullOrEmpty(blog.CoverImageUrl) ? "text-white-75" : "")">@blog.ShortDescription</p>
+
+                    <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
+                        @if (!string.IsNullOrEmpty(blog.Author?.AvatarUrl))
+                        {
+                            <img src="@blog.Author.AvatarUrl" class="tb-avatar-sm" alt="@blog.Author.Username" />
+                        }
+                        else
+                        {
+                            <span class="tb-avatar-placeholder-sm">@(blog.Author?.FullName?[0] ?? '?')</span>
+                        }
+                        <div>
+                            <div class="fw-semibold @(!string.IsNullOrEmpty(blog.CoverImageUrl) ? "text-white" : "")">
+                                @(blog.Author?.FullName ?? blog.Author?.Username ?? "Unknown")
+                            </div>
+                            <div class="small @(!string.IsNullOrEmpty(blog.CoverImageUrl) ? "text-white-75" : "text-muted")">
+                                @blog.PublishedAt.ToString("MMMM d, yyyy")
+                                @if (blog.UpdatedAt.HasValue)
+                                { <text> · Updated @blog.UpdatedAt.Value.ToString("MMM d")</text> }
+                            </div>
+                        </div>
+                        <div class="ms-auto d-flex gap-3 small @(!string.IsNullOrEmpty(blog.CoverImageUrl) ? "text-white" : "text-muted")">
+                            <span><i class="fa fa-eye me-1"></i>@blog.ViewCount</span>
+                            <span><i class="fa fa-comment me-1"></i>@Model.Comments.Count</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Action bar -->
+                @if (Model.CanEdit)
+                {
+                    <div class="tb-action-bar mb-4">
+                        <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa fa-pen me-1"></i>Edit
+                        </a>
+                        <form asp-action="ToggleVisibility" asp-route-id="@blog.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-sm @(blog.IsPublic ? "btn-outline-warning" : "btn-outline-success")">
+                                <i class="fa @(blog.IsPublic ? "fa-eye-slash" : "fa-eye") me-1"></i>
+                                @(blog.IsPublic ? "Make Private" : "Make Public")
+                            </button>
+                        </form>
+                        <form asp-action="Delete" asp-route-id="@blog.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Are you sure you want to delete this blog?')">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-sm btn-outline-danger"><i class="fa fa-trash me-1"></i>Delete</button>
+                        </form>
+                    </div>
+                }
+
+                <!-- Content -->
+                <div class="tb-article-body">
+                    @Html.Raw(blog.LongDescription)
+                </div>
+
+                <!-- Images gallery -->
+                @if (blog.Images?.Any() == true)
+                {
+                    <div class="tb-gallery row g-2 mt-4">
+                        @foreach (var img in blog.Images.OrderBy(i => i.SortOrder))
+                        {
+                            <div class="col-4">
+                                <a href="@img.ImageUrl" target="_blank">
+                                    <img src="@img.ImageUrl" class="tb-gallery-img w-100" alt="@img.Caption" title="@img.Caption" />
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Tags -->
+                @if (blog.Tags?.Any() == true)
+                {
+                    <div class="mt-4">
+                        @foreach (var tag in blog.Tags)
+                        {
+                            <a asp-controller="Blog" asp-action="Index" asp-route-search="@tag.Name" class="tb-tag me-1">#@tag.Name</a>
+                        }
+                    </div>
+                }
+
+                <hr class="my-5" />
+
+                <!-- Comments -->
+                <section id="comments">
+                    <h4 class="fw-bold mb-4"><i class="fa fa-comments me-2 text-accent"></i>@Model.Comments.Count Comment@(Model.Comments.Count != 1 ? "s" : "")</h4>
+
+                    @if (isLoggedIn)
+                    {
+                        <form asp-controller="Blog" asp-action="AddComment" method="post" class="tb-comment-form mb-4">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="BlogId" value="@blog.Id" />
+                            <div class="d-flex gap-3">
+                                <span class="tb-avatar-placeholder-sm">@(AuthHelper.GetFullName(Context.Session)[0])</span>
+                                <div class="flex-grow-1">
+                                    <textarea name="Content" class="form-control tb-comment-input" rows="3"
+                                              placeholder="Share your thoughts..." required maxlength="1000"></textarea>
+                                    <div class="text-end mt-2">
+                                        <button type="submit" class="btn btn-tb btn-sm">
+                                            <i class="fa fa-paper-plane me-1"></i>Post Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="tb-login-prompt mb-4">
+                            <a asp-controller="Account" asp-action="Login">Login</a> to leave a comment.
+                        </div>
+                    }
+
+                    @if (Model.Comments.Any())
+                    {
+                        <div class="tb-comments-list">
+                            @foreach (var comment in Model.Comments)
+                            {
+                                <div class="tb-comment">
+                                    <div class="d-flex gap-3">
+                                        @if (!string.IsNullOrEmpty(comment.AuthorAvatar))
+                                        {
+                                            <img src="@comment.AuthorAvatar" class="tb-avatar-sm" alt="@comment.AuthorName" />
+                                        }
+                                        else
+                                        {
+                                            <span class="tb-avatar-placeholder-sm">@comment.AuthorName[0]</span>
+                                        }
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="fw-semibold">@comment.AuthorName</span>
+                                                <span class="small text-muted">@comment.CreatedAt.ToString("MMM d, yyyy")</span>
+                                            </div>
+                                            <p class="mb-0">@comment.Content</p>
+                                        </div>
+                                        @if (comment.CanDelete)
+                                        {
+                                            <form asp-action="DeleteComment" method="post"
+                                                  onsubmit="return confirm('Delete this comment?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="commentId" value="@comment.Id" />
+                                                <input type="hidden" name="blogId" value="@blog.Id" />
+                                                <button class="btn btn-sm btn-link text-danger p-0">
+                                                    <i class="fa fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No comments yet. Be the first to comment!</p>
+                    }
+                </section>
+
+                <!-- Related -->
+                @if (Model.RelatedBlogs.Any())
+                {
+                    <section class="mt-5">
+                        <h5 class="fw-bold mb-3">More from @blog.Destination</h5>
+                        <div class="row g-3">
+                            @foreach (var related in Model.RelatedBlogs)
+                            {
+                                <div class="col-md-4">
+                                    <partial name="_BlogCard" model="related" />
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+</article>

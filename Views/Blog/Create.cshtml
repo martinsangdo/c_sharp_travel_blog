@@ -1,0 +1,226 @@
+@model TravelBlog.ViewModels.CreateBlogViewModel
+@{
+    ViewData["Title"] = "Write a Blog";
+}
+
+<div class="tb-page-header">
+    <div class="container">
+        <h1 class="tb-page-title"><i class="fa fa-pen me-2"></i>Write a Travel Story</h1>
+        <p class="tb-page-sub">Share your experience with the world. Use the AI assistant for inspiration!</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Form -->
+        <div class="col-lg-8">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" class="tb-form-card">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold">Blog Title *</label>
+                    <input asp-for="Title" class="form-control tb-input" placeholder="Give your story a great title..." />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label asp-for="Destination" class="form-label fw-semibold">Travel Destination</label>
+                        <input asp-for="Destination" class="form-control tb-input" placeholder="e.g. Bali, Indonesia" id="destinationInput" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Tags" class="form-label fw-semibold">Tags</label>
+                        <input asp-for="Tags" class="form-control tb-input" placeholder="beach, culture, food" />
+                        <small class="text-muted">Comma-separated</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ShortDescription" class="form-label fw-semibold">Short Description *</label>
+                    <textarea asp-for="ShortDescription" class="form-control tb-input" rows="2"
+                              placeholder="A brief summary shown in blog cards (max 500 chars)"></textarea>
+                    <span asp-validation-for="ShortDescription" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LongDescription" class="form-label fw-semibold">Full Content *</label>
+                    <textarea asp-for="LongDescription" id="longDescEditor" class="form-control tb-input" rows="14"
+                              placeholder="Write your full travel story here..."></textarea>
+                    <span asp-validation-for="LongDescription" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CoverImage" class="form-label fw-semibold">Cover Image</label>
+                    <input asp-for="CoverImage" type="file" class="form-control tb-input" accept="image/*" id="coverImgInput" />
+                    <div id="coverPreview" class="mt-2"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AdditionalImages" class="form-label fw-semibold">Additional Images</label>
+                    <input asp-for="AdditionalImages" type="file" class="form-control tb-input" accept="image/*" multiple />
+                    <small class="text-muted">You can upload multiple images (max 5MB each)</small>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input asp-for="IsPublic" class="form-check-input" type="checkbox" role="switch" />
+                        <label asp-for="IsPublic" class="form-check-label">
+                            Make this post <strong>public</strong>
+                            <small class="text-muted d-block">Private posts are only visible to you</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-tb">
+                        <i class="fa fa-paper-plane me-2"></i>Publish Blog
+                    </button>
+                    <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- AI Assistant Panel -->
+        <div class="col-lg-4">
+            <div class="tb-ai-panel sticky-top" style="top: 80px;">
+                <div class="tb-ai-header">
+                    <span class="tb-ai-icon"><i class="fa fa-robot"></i></span>
+                    <div>
+                        <h6 class="mb-0 fw-bold">AI Writing Assistant</h6>
+                        <small class="text-muted">Get ideas and inspiration</small>
+                    </div>
+                </div>
+
+                <div class="tb-ai-tabs">
+                    <button class="tb-ai-tab active" data-tab="ideas">💡 Ideas</button>
+                    <button class="tb-ai-tab" data-tab="outline">📋 Outline</button>
+                    <button class="tb-ai-tab" data-tab="assist">✍️ Assist</button>
+                </div>
+
+                <!-- Ideas Tab -->
+                <div class="tb-ai-tab-content active" id="tab-ideas">
+                    <p class="small text-muted">Get 5 blog post ideas for your destination.</p>
+                    <input type="text" id="ai-destination" class="form-control tb-input mb-2" placeholder="Destination (e.g. Tokyo)" />
+                    <input type="text" id="ai-topic" class="form-control tb-input mb-2" placeholder="Topic (optional)" />
+                    <button class="btn btn-tb-outline w-100" onclick="aiGetIdeas()">
+                        <i class="fa fa-sparkles me-1"></i>Generate Ideas
+                    </button>
+                </div>
+
+                <!-- Outline Tab -->
+                <div class="tb-ai-tab-content" id="tab-outline">
+                    <p class="small text-muted">Create a blog outline from your title.</p>
+                    <input type="text" id="ai-outline-title" class="form-control tb-input mb-2" placeholder="Blog title" />
+                    <input type="text" id="ai-outline-dest" class="form-control tb-input mb-2" placeholder="Destination" />
+                    <button class="btn btn-tb-outline w-100" onclick="aiGetOutline()">
+                        <i class="fa fa-list me-1"></i>Generate Outline
+                    </button>
+                </div>
+
+                <!-- Assist Tab -->
+                <div class="tb-ai-tab-content" id="tab-assist">
+                    <p class="small text-muted">Ask the AI to help write or expand content.</p>
+                    <textarea id="ai-prompt" class="form-control tb-input mb-2" rows="3"
+                              placeholder="e.g. Write an intro paragraph about street food in Bangkok"></textarea>
+                    <button class="btn btn-tb-outline w-100" onclick="aiAssist()">
+                        <i class="fa fa-wand-magic-sparkles me-1"></i>Get Help
+                    </button>
+                </div>
+
+                <!-- AI Response -->
+                <div id="ai-loading" class="text-center py-3 d-none">
+                    <div class="spinner-border spinner-border-sm text-accent me-2"></div>
+                    <span class="small text-muted">AI is thinking...</span>
+                </div>
+                <div id="ai-result" class="tb-ai-result d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold text-accent">AI Response</span>
+                        <button class="btn btn-sm btn-link p-0 text-muted" onclick="copyToEditor()">
+                            <i class="fa fa-copy me-1"></i>Copy to editor
+                        </button>
+                    </div>
+                    <div id="ai-result-text" class="small tb-ai-result-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// AI Tab switching
+document.querySelectorAll('.tb-ai-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tb-ai-tab, .tb-ai-tab-content').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+});
+
+function showAiLoading() {
+    document.getElementById('ai-loading').classList.remove('d-none');
+    document.getElementById('ai-result').classList.add('d-none');
+}
+
+function showAiResult(text) {
+    document.getElementById('ai-loading').classList.add('d-none');
+    document.getElementById('ai-result').classList.remove('d-none');
+    document.getElementById('ai-result-text').innerText = text;
+}
+
+async function aiCall(url, body) {
+    showAiLoading();
+    try {
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        showAiResult(data.content || 'No response.');
+    } catch(e) {
+        showAiResult('Error: ' + e.message);
+    }
+}
+
+function aiGetIdeas() {
+    aiCall('/Blog/AiIdeas', {
+        destination: document.getElementById('ai-destination').value || 'any destination',
+        topic: document.getElementById('ai-topic').value
+    });
+}
+
+function aiGetOutline() {
+    aiCall('/Blog/AiOutline', {
+        title: document.getElementById('ai-outline-title').value || document.getElementById('Title').value,
+        destination: document.getElementById('ai-outline-dest').value || document.getElementById('destinationInput').value
+    });
+}
+
+function aiAssist() {
+    aiCall('/Blog/AiAssist', { prompt: document.getElementById('ai-prompt').value });
+}
+
+function copyToEditor() {
+    const text = document.getElementById('ai-result-text').innerText;
+    const editor = document.getElementById('longDescEditor');
+    editor.value = (editor.value ? editor.value + '\n\n' : '') + text;
+    editor.focus();
+}
+
+// Cover image preview
+document.getElementById('coverImgInput').addEventListener('change', function() {
+    const preview = document.getElementById('coverPreview');
+    preview.innerHTML = '';
+    if (this.files[0]) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(this.files[0]);
+        img.className = 'img-thumbnail';
+        img.style.maxHeight = '150px';
+        preview.appendChild(img);
+    }
+});
+</script>
+}

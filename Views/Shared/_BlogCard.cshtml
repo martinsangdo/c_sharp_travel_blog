@@ -1,0 +1,61 @@
+@model TravelBlog.ViewModels.BlogCardViewModel
+
+<div class="tb-card h-100">
+    <a asp-controller="Blog" asp-action="Detail" asp-route-id="@Model.Id" class="text-decoration-none">
+        <div class="tb-card-img-wrap">
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" alt="@Model.Title" class="tb-card-img" />
+            }
+            else
+            {
+                <div class="tb-card-img-placeholder">
+                    <i class="fa fa-image fa-2x"></i>
+                </div>
+            }
+            @if (!Model.IsPublic)
+            {
+                <span class="tb-card-badge-private"><i class="fa fa-lock me-1"></i>Private</span>
+            }
+        </div>
+    </a>
+    <div class="tb-card-body">
+        @if (!string.IsNullOrEmpty(Model.Destination))
+        {
+            <span class="tb-dest-tag"><i class="fa fa-location-dot me-1"></i>@Model.Destination</span>
+        }
+        <a asp-controller="Blog" asp-action="Detail" asp-route-id="@Model.Id" class="text-decoration-none">
+            <h5 class="tb-card-title">@Model.Title</h5>
+        </a>
+        <p class="tb-card-desc">@Model.ShortDescription</p>
+
+        @if (Model.Tags.Any())
+        {
+            <div class="tb-tag-row mb-2">
+                @foreach (var tag in Model.Tags.Take(3))
+                {
+                    <span class="tb-tag">#@tag</span>
+                }
+            </div>
+        }
+
+        <div class="tb-card-meta">
+            <div class="d-flex align-items-center gap-2">
+                @if (!string.IsNullOrEmpty(Model.AuthorAvatar))
+                {
+                    <img src="@Model.AuthorAvatar" class="tb-avatar-xs" alt="@Model.AuthorName" />
+                }
+                else
+                {
+                    <span class="tb-avatar-placeholder-xs">@(Model.AuthorName.Length > 0 ? Model.AuthorName[0] : '?')</span>
+                }
+                <span class="small fw-medium">@Model.AuthorName</span>
+            </div>
+            <div class="d-flex gap-3 small text-muted">
+                <span><i class="fa fa-eye me-1"></i>@Model.ViewCount</span>
+                <span><i class="fa fa-comment me-1"></i>@Model.CommentCount</span>
+                <span>@Model.PublishedAt.ToString("MMM d")</span>
+            </div>
+        </div>
+    </div>
+</div>

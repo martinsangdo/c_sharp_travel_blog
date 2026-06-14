@@ -1,0 +1,87 @@
+@model TravelBlog.ViewModels.BlogListViewModel
+@{
+    ViewData["Title"] = "Manage Blogs";
+}
+
+<div class="tb-admin-layout">
+    <aside class="tb-admin-sidebar">
+        <div class="tb-admin-brand"><i class="fa fa-shield-halved me-2"></i>Admin Panel</div>
+        <nav class="tb-admin-nav">
+            <a class="tb-admin-nav-item" asp-action="Index"><i class="fa fa-chart-line"></i>Dashboard</a>
+            <a class="tb-admin-nav-item" asp-action="Users"><i class="fa fa-users"></i>Users</a>
+            <a class="tb-admin-nav-item active" asp-action="Blogs"><i class="fa fa-newspaper"></i>Blog Posts</a>
+            <a class="tb-admin-nav-item" asp-action="CreateAdmin"><i class="fa fa-user-shield"></i>Add Admin</a>
+            <hr /><a class="tb-admin-nav-item" asp-controller="Home" asp-action="Index"><i class="fa fa-arrow-left"></i>Back to Site</a>
+        </nav>
+    </aside>
+    <main class="tb-admin-content">
+        <div class="tb-admin-topbar">
+            <h4 class="mb-0 fw-bold">Blog Posts <span class="badge bg-secondary">@Model.TotalCount</span></h4>
+        </div>
+
+        <form asp-action="Blogs" method="get" class="mb-4">
+            <div class="input-group" style="max-width:360px">
+                <input type="text" name="search" value="@Model.SearchQuery" class="form-control tb-input" placeholder="Search title or author..." />
+                <button class="btn btn-tb"><i class="fa fa-search"></i></button>
+            </div>
+        </form>
+
+        <div class="tb-admin-card">
+            <div class="table-responsive">
+                <table class="table tb-admin-table align-middle">
+                    <thead>
+                        <tr><th>Title</th><th>Author</th><th>Destination</th><th>Views</th><th>Comments</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var blog in Model.Blogs)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-controller="Blog" asp-action="Detail" asp-route-id="@blog.Id"
+                                       class="tb-link" target="_blank">@blog.Title</a>
+                                </td>
+                                <td class="small text-muted">@blog.AuthorName</td>
+                                <td class="small">
+                                    @if (!string.IsNullOrEmpty(blog.Destination))
+                                    { <span class="tb-dest-tag">@blog.Destination</span> }
+                                </td>
+                                <td class="small">@blog.ViewCount</td>
+                                <td class="small">@blog.CommentCount</td>
+                                <td>
+                                    @if (blog.IsPublic)
+                                    { <span class="badge bg-success">Public</span> }
+                                    else
+                                    { <span class="badge bg-secondary">Private</span> }
+                                </td>
+                                <td class="small text-muted">@blog.PublishedAt.ToString("MMM d, yyyy")</td>
+                                <td>
+                                    <form asp-action="DeleteBlog" asp-route-id="@blog.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Permanently delete this blog?')">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-3">
+                <ul class="pagination tb-pagination justify-content-center">
+                    @for (int p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Blogs" asp-route-page="@p" asp-route-search="@Model.SearchQuery">@p</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </main>
+</div>

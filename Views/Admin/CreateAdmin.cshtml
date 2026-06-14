@@ -1,0 +1,73 @@
+@model TravelBlog.ViewModels.CreateAdminViewModel
+@{
+    ViewData["Title"] = "Create Admin Account";
+}
+
+<div class="tb-admin-layout">
+    <aside class="tb-admin-sidebar">
+        <div class="tb-admin-brand"><i class="fa fa-shield-halved me-2"></i>Admin Panel</div>
+        <nav class="tb-admin-nav">
+            <a class="tb-admin-nav-item" asp-action="Index"><i class="fa fa-chart-line"></i>Dashboard</a>
+            <a class="tb-admin-nav-item" asp-action="Users"><i class="fa fa-users"></i>Users</a>
+            <a class="tb-admin-nav-item" asp-action="Blogs"><i class="fa fa-newspaper"></i>Blog Posts</a>
+            <a class="tb-admin-nav-item active" asp-action="CreateAdmin"><i class="fa fa-user-shield"></i>Add Admin</a>
+            <hr /><a class="tb-admin-nav-item" asp-controller="Home" asp-action="Index"><i class="fa fa-arrow-left"></i>Back to Site</a>
+        </nav>
+    </aside>
+    <main class="tb-admin-content">
+        <div class="tb-admin-topbar">
+            <h4 class="mb-0 fw-bold">Create New Admin Account</h4>
+        </div>
+
+        <div style="max-width:520px">
+            <div class="tb-admin-card">
+                <form asp-action="CreateAdmin" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                        <input asp-for="FullName" class="form-control tb-input" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col">
+                            <label asp-for="Username" class="form-label fw-semibold">Username</label>
+                            <input asp-for="Username" class="form-control tb-input" />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+                        <div class="col">
+                            <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                            <input asp-for="Email" class="form-control tb-input" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col">
+                            <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                            <input asp-for="Password" type="password" class="form-control tb-input" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirm</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control tb-input" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa fa-info-circle me-1"></i>
+                        This account will have full admin privileges including deleting blogs and managing users.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa fa-user-shield me-1"></i>Create Admin Account
+                        </button>
+                        <a asp-action="Users" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>

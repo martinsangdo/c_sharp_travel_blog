@@ -1,0 +1,107 @@
+@model TravelBlog.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_Layout";
+}
+
+<div class="tb-admin-layout">
+    <!-- Admin Sidebar -->
+    <aside class="tb-admin-sidebar">
+        <div class="tb-admin-brand">
+            <i class="fa fa-shield-halved me-2"></i>Admin Panel
+        </div>
+        <nav class="tb-admin-nav">
+            <a class="tb-admin-nav-item active" asp-action="Index"><i class="fa fa-chart-line"></i>Dashboard</a>
+            <a class="tb-admin-nav-item" asp-action="Users"><i class="fa fa-users"></i>Users</a>
+            <a class="tb-admin-nav-item" asp-action="Blogs"><i class="fa fa-newspaper"></i>Blog Posts</a>
+            <a class="tb-admin-nav-item" asp-action="CreateAdmin"><i class="fa fa-user-shield"></i>Add Admin</a>
+            <hr />
+            <a class="tb-admin-nav-item" asp-controller="Home" asp-action="Index"><i class="fa fa-arrow-left"></i>Back to Site</a>
+        </nav>
+    </aside>
+
+    <!-- Admin Content -->
+    <main class="tb-admin-content">
+        <div class="tb-admin-topbar">
+            <h4 class="mb-0 fw-bold">Dashboard</h4>
+            <span class="text-muted small">@DateTime.Now.ToString("dddd, MMMM d yyyy")</span>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-4 mb-4">
+            @foreach (var (label, value, icon, color) in new[] {
+                ("Total Users", Model.TotalUsers.ToString(), "fa-users", "tb-stat-blue"),
+                ("Total Blogs", Model.TotalBlogs.ToString(), "fa-newspaper", "tb-stat-teal"),
+                ("Public Blogs", Model.PublicBlogs.ToString(), "fa-globe", "tb-stat-green"),
+                ("Total Comments", Model.TotalComments.ToString(), "fa-comments", "tb-stat-gold"),
+                ("New Users (Month)", Model.NewUsersThisMonth.ToString(), "fa-user-plus", "tb-stat-purple")
+            })
+            {
+                <div class="col-sm-6 col-xl">
+                    <div class="tb-admin-stat @color">
+                        <i class="fa @icon tb-admin-stat-icon"></i>
+                        <div class="tb-admin-stat-num">@value</div>
+                        <div class="tb-admin-stat-label">@label</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Recent Blogs & Users -->
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="tb-admin-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Recent Blog Posts</h6>
+                        <a asp-action="Blogs" class="tb-link-arrow small">View all</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm tb-admin-table">
+                            <thead><tr><th>Title</th><th>Author</th><th>Date</th><th>Public</th></tr></thead>
+                            <tbody>
+                                @foreach (var blog in Model.RecentBlogs)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Blog" asp-action="Detail" asp-route-id="@blog.Id"
+                                               class="tb-link" target="_blank">@blog.Title</a>
+                                        </td>
+                                        <td class="text-muted small">@blog.AuthorName</td>
+                                        <td class="text-muted small">@blog.PublishedAt.ToString("MMM d")</td>
+                                        <td>
+                                            @if (blog.IsPublic)
+                                            { <span class="badge bg-success">Public</span> }
+                                            else
+                                            { <span class="badge bg-secondary">Private</span> }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="tb-admin-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Recent Users</h6>
+                        <a asp-action="Users" class="tb-link-arrow small">View all</a>
+                    </div>
+                    @foreach (var user in Model.RecentUsers)
+                    {
+                        <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+                            <span class="tb-avatar-placeholder-xs">@user.Username[0]</span>
+                            <div class="flex-grow-1">
+                                <div class="small fw-semibold">@user.FullName</div>
+                                <div class="x-small text-muted">@user.Email</div>
+                            </div>
+                            <span class="badge @(user.Role == Models.UserRole.Admin ? "bg-danger" : "bg-primary")">
+                                @user.Role
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
