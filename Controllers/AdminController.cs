@@ -27,6 +27,17 @@ namespace TravelBlog.Controllers
             var now = DateTime.UtcNow;
             var monthStart = new DateTime(now.Year, now.Month, 1);
 
+            var last7Days = Enumerable.Range(0, 7)
+                .Select(i => now.Date.AddDays(-6 + i))
+                .ToList();
+
+            var rangeStart = last7Days.First();
+            var dailyCounts = await _db.Blogs
+                .Where(b => !b.IsDeleted && b.PublishedAt >= rangeStart)
+                .GroupBy(b => b.PublishedAt.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .ToListAsync();
+
             var vm = new AdminDashboardViewModel
             {
                 TotalUsers = await _db.Users.CountAsync(),
@@ -35,7 +46,9 @@ namespace TravelBlog.Controllers
                 PublicBlogs = await _db.Blogs.CountAsync(b => !b.IsDeleted && b.IsPublic && b.Status == Models.BlogStatus.Published),
                 NewUsersThisMonth = await _db.Users.CountAsync(u => u.CreatedAt >= monthStart),
                 RecentBlogs = (await _blogService.GetAllBlogsAdminAsync(1, 5, null)).Blogs,
-                RecentUsers = await _userService.GetAllUsersAsync(1, 5, null)
+                RecentUsers = await _userService.GetAllUsersAsync(1, 5, null),
+                BlogChartLabels = last7Days.Select(d => d.ToString("MMM d")).ToList(),
+                BlogChartData = last7Days.Select(d => dailyCounts.FirstOrDefault(x => x.Date == d)?.Count ?? 0).ToList()
             };
             return View(vm);
         }
