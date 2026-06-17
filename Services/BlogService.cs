@@ -36,13 +36,13 @@ namespace TravelBlog.Services
         public async Task<BlogListViewModel> GetPublicBlogsAsync(int page, int pageSize, string? search, string? destination, string? sortBy)
         {
             var query = _db.Blogs
-                .Where(b => b.IsPublic && b.Status == BlogStatus.Published)
+                .Where(b => !b.IsDeleted && b.IsPublic && b.Status == BlogStatus.Published)
                 .Include(b => b.Author)
                 .Include(b => b.Comments)
                 .Include(b => b.Tags)
                 .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(search))
+            if (!string.IsNullOrWhiteSpace(search) && search.Trim().Length >= 4)
                 query = query.Where(b => b.Title.Contains(search) || b.ShortDescription.Contains(search) || (b.Destination != null && b.Destination.Contains(search)));
 
             if (!string.IsNullOrWhiteSpace(destination))
@@ -74,7 +74,7 @@ namespace TravelBlog.Services
         public async Task<BlogListViewModel> GetUserBlogsAsync(int userId, int page, int pageSize)
         {
             var query = _db.Blogs
-                .Where(b => b.AuthorId == userId)
+                .Where(b => !b.IsDeleted && b.AuthorId == userId)
                 .Include(b => b.Author)
                 .Include(b => b.Comments)
                 .Include(b => b.Tags)
@@ -95,6 +95,7 @@ namespace TravelBlog.Services
         public async Task<BlogListViewModel> GetAllBlogsAdminAsync(int page, int pageSize, string? search)
         {
             var query = _db.Blogs
+                .Where(b => !b.IsDeleted)
                 .Include(b => b.Author)
                 .Include(b => b.Comments)
                 .Include(b => b.Tags)
@@ -120,7 +121,7 @@ namespace TravelBlog.Services
 
         public async Task<Blog?> GetByIdAsync(int id, bool includeAll = false)
         {
-            if (!includeAll) return await _db.Blogs.FindAsync(id);
+            if (!includeAll) return await _db.Blogs.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
 
             return await _db.Blogs
                 .Include(b => b.Author)
@@ -128,7 +129,7 @@ namespace TravelBlog.Services
                 .Include(b => b.Tags)
                 .Include(b => b.Comments.Where(c => !c.IsDeleted))
                     .ThenInclude(c => c.User)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
         }
 
         public async Task<BlogDetailViewModel> GetDetailAsync(int id, int? currentUserId)
@@ -137,7 +138,7 @@ namespace TravelBlog.Services
                 ?? throw new KeyNotFoundException("Blog not found");
 
             var related = await _db.Blogs
-                .Where(b => b.Id != id && b.IsPublic && b.Status == BlogStatus.Published
+                .Where(b => !b.IsDeleted && b.Id != id && b.IsPublic && b.Status == BlogStatus.Published
                     && b.Destination == blog.Destination)
                 .Include(b => b.Author).Include(b => b.Tags)
                 .Take(3).ToListAsync();
@@ -247,16 +248,14 @@ namespace TravelBlog.Services
 
         public async Task DeleteAsync(int id, int currentUserId, bool isAdmin = false)
         {
-            var blog = await _db.Blogs.Include(b => b.Images).FirstOrDefaultAsync(b => b.Id == id)
+            var blog = await _db.Blogs.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted)
                 ?? throw new KeyNotFoundException("Blog not found");
 
             if (!isAdmin && blog.AuthorId != currentUserId)
                 throw new UnauthorizedAccessException("You cannot delete this blog.");
 
-            foreach (var img in blog.Images) _fileService.DeleteFile(img.ImageUrl);
-            if (!string.IsNullOrEmpty(blog.CoverImageUrl)) _fileService.DeleteFile(blog.CoverImageUrl);
-
-            _db.Blogs.Remove(blog);
+            blog.IsDeleted = true;
+            blog.DeletedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 
@@ -264,6 +263,12 @@ namespace TravelBlog.Services
         {
             var blog = await _db.Blogs.FindAsync(model.BlogId)
                 ?? throw new KeyNotFoundException("Blog not found");
+
+            var todayStart = DateTime.UtcNow.Date;
+            var todayCount = await _db.Comments
+                .CountAsync(c => c.UserId == userId && c.CreatedAt >= todayStart && !c.IsDeleted);
+            if (todayCount >= 3)
+                throw new InvalidOperationException("You have reached the maximum of 3 comments per day.");
 
             var comment = new Comment
             {
@@ -292,7 +297,7 @@ namespace TravelBlog.Services
 
         public async Task<List<string>> GetPopularDestinationsAsync(int count = 10)
             => await _db.Blogs
-                .Where(b => b.IsPublic && b.Destination != null)
+                .Where(b => !b.IsDeleted && b.IsPublic && b.Destination != null)
                 .GroupBy(b => b.Destination!)
                 .OrderByDescending(g => g.Count())
                 .Take(count)
@@ -301,13 +306,13 @@ namespace TravelBlog.Services
 
         public async Task IncrementViewCountAsync(int blogId)
         {
-            var blog = await _db.Blogs.FindAsync(blogId);
+            var blog = await _db.Blogs.FirstOrDefaultAsync(b => b.Id == blogId && !b.IsDeleted);
             if (blog != null) { blog.ViewCount++; await _db.SaveChangesAsync(); }
         }
 
         public async Task ToggleVisibilityAsync(int blogId, int userId)
         {
-            var blog = await _db.Blogs.FindAsync(blogId)
+            var blog = await _db.Blogs.FirstOrDefaultAsync(b => b.Id == blogId && !b.IsDeleted)
                 ?? throw new KeyNotFoundException("Blog not found");
             if (blog.AuthorId != userId && !IsAdmin(userId))
                 throw new UnauthorizedAccessException();

@@ -66,6 +66,7 @@ namespace TravelBlog.Services
         Task<string> GetBlogIdeasAsync(string destination, string? topic = null);
         Task<string> GetContentOutlineAsync(string title, string destination);
         Task<string> GetWritingAssistanceAsync(string prompt);
+        Task<List<string>> GetDestinationSuggestionsAsync(string query);
     }
 
     public class AIService : IAIService
@@ -97,6 +98,21 @@ namespace TravelBlog.Services
 
         public async Task<string> GetWritingAssistanceAsync(string prompt)
             => await CallGroqAsync(prompt, "You are a helpful travel blog writing assistant. Be creative, descriptive, and engaging.");
+
+        public async Task<List<string>> GetDestinationSuggestionsAsync(string query)
+        {
+            var prompt = $"Suggest up to 5 real travel destinations matching \"{query}\". Reply ONLY with a JSON array of strings, each in \"City, Country\" format. Example: [\"Bali, Indonesia\",\"Bangkok, Thailand\"]. No explanation.";
+            var raw = await CallGroqAsync(prompt, "You are a travel destination search assistant. Reply only with a JSON array.");
+            try
+            {
+                var start = raw.IndexOf('[');
+                var end = raw.LastIndexOf(']');
+                if (start >= 0 && end > start)
+                    return System.Text.Json.JsonSerializer.Deserialize<List<string>>(raw[start..(end + 1)]) ?? [];
+            }
+            catch { }
+            return [];
+        }
 
         private async Task<string> CallGroqAsync(string userMessage, string systemMessage)
         {

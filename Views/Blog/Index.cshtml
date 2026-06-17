@@ -18,15 +18,27 @@
                 <!-- Search -->
                 <div class="tb-sidebar-section">
                     <h6 class="tb-sidebar-title">Search</h6>
-                    <form asp-action="Index" method="get">
+                    <form asp-action="Index" method="get" id="searchForm">
                         <input type="hidden" name="destination" value="@Model.Destination" />
                         <input type="hidden" name="sortBy" value="@Model.SortBy" />
                         <div class="input-group">
-                            <input type="text" name="search" value="@Model.SearchQuery"
-                                   class="form-control tb-search-input" placeholder="Search blogs..." />
+                            <input type="text" name="search" id="searchInput" value="@Model.SearchQuery"
+                                   class="form-control tb-search-input" placeholder="Min 4 characters..." minlength="4" />
                             <button class="btn btn-tb" type="submit"><i class="fa fa-search"></i></button>
                         </div>
+                        <div id="searchError" class="text-danger small mt-1" style="display:none">Please enter at least 4 characters.</div>
                     </form>
+                    <script>
+                        document.getElementById('searchForm').addEventListener('submit', function (e) {
+                            var val = document.getElementById('searchInput').value.trim();
+                            if (val.length > 0 && val.length < 4) {
+                                e.preventDefault();
+                                document.getElementById('searchError').style.display = 'block';
+                            } else {
+                                document.getElementById('searchError').style.display = 'none';
+                            }
+                        });
+                    </script>
                 </div>
 
                 <!-- Sort -->

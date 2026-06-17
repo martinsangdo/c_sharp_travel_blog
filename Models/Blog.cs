@@ -32,6 +32,10 @@ namespace TravelBlog.Models
 
         public int ViewCount { get; set; } = 0;
 
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
+
         // Foreign key
         public int AuthorId { get; set; }
 

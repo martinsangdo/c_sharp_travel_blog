@@ -30,9 +30,9 @@ namespace TravelBlog.Controllers
             var vm = new AdminDashboardViewModel
             {
                 TotalUsers = await _db.Users.CountAsync(),
-                TotalBlogs = await _db.Blogs.CountAsync(),
+                TotalBlogs = await _db.Blogs.CountAsync(b => !b.IsDeleted),
                 TotalComments = await _db.Comments.CountAsync(c => !c.IsDeleted),
-                PublicBlogs = await _db.Blogs.CountAsync(b => b.IsPublic && b.Status == Models.BlogStatus.Published),
+                PublicBlogs = await _db.Blogs.CountAsync(b => !b.IsDeleted && b.IsPublic && b.Status == Models.BlogStatus.Published),
                 NewUsersThisMonth = await _db.Users.CountAsync(u => u.CreatedAt >= monthStart),
                 RecentBlogs = (await _blogService.GetAllBlogsAdminAsync(1, 5, null)).Blogs,
                 RecentUsers = await _userService.GetAllUsersAsync(1, 5, null)
