@@ -1,0 +1,102 @@
+@model List<TravelBlog.Models.Comment>
+@{
+    ViewData["Title"] = "Manage Comments";
+    var blog = ViewBag.Blog as TravelBlog.Models.Blog;
+}
+
+<div class="tb-admin-layout">
+    <aside class="tb-admin-sidebar">
+        <div class="tb-admin-brand"><i class="fa fa-shield-halved me-2"></i>Admin Panel</div>
+        <nav class="tb-admin-nav">
+            <a class="tb-admin-nav-item" asp-action="Index"><i class="fa fa-chart-line"></i>Dashboard</a>
+            <a class="tb-admin-nav-item" asp-action="Users"><i class="fa fa-users"></i>Users</a>
+            <a class="tb-admin-nav-item active" asp-action="Blogs"><i class="fa fa-newspaper"></i>Blog Posts</a>
+            <a class="tb-admin-nav-item" asp-action="CreateAdmin"><i class="fa fa-user-shield"></i>Add Admin</a>
+            <hr /><a class="tb-admin-nav-item" asp-controller="Home" asp-action="Index"><i class="fa fa-arrow-left"></i>Back to Site</a>
+        </nav>
+    </aside>
+    <main class="tb-admin-content">
+        <div class="tb-admin-topbar">
+            <div>
+                <a asp-action="Blogs" class="tb-link-arrow small d-block mb-1">
+                    <i class="fa fa-arrow-left me-1"></i>Back to Blogs
+                </a>
+                <h4 class="mb-0 fw-bold">Comments</h4>
+                <p class="text-muted small mb-0">@blog?.Title</p>
+            </div>
+            <span class="badge bg-secondary">@Model.Count total</span>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="tb-admin-card">
+            @if (!Model.Any())
+            {
+                <p class="text-muted text-center py-4">No comments yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table tb-admin-table align-middle">
+                        <thead>
+                            <tr><th>Author</th><th>Comment</th><th>Date</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model)
+                            {
+                                <tr class="@(c.IsDeleted ? "table-secondary opacity-75" : "")">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="tb-avatar-placeholder-xs">@(c.User?.Username[0] ?? '?')</span>
+                                            <div>
+                                                <div class="small fw-semibold">@(c.User?.FullName ?? c.User?.Username ?? "Unknown")</div>
+                                                <div class="x-small text-muted">@@@(c.User?.Username ?? "")</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="small" style="max-width:360px">
+                                        @if (c.IsDeleted)
+                                        {
+                                            <span class="text-muted fst-italic">@c.Content</span>
+                                        }
+                                        else
+                                        {
+                                            @c.Content
+                                        }
+                                    </td>
+                                    <td class="small text-muted text-nowrap">@c.CreatedAt.ToString("MMM d, yyyy HH:mm")</td>
+                                    <td>
+                                        @if (c.IsDeleted)
+                                        { <span class="badge bg-secondary">Deleted</span> }
+                                        else
+                                        { <span class="badge bg-success">Active</span> }
+                                    </td>
+                                    <td>
+                                        @if (!c.IsDeleted)
+                                        {
+                                            <form asp-action="DeleteComment" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Delete this comment?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="commentId" value="@c.Id" />
+                                                <input type="hidden" name="blogId" value="@blog!.Id" />
+                                                <button class="btn btn-sm btn-danger" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </main>
+</div>
