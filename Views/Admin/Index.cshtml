@@ -95,7 +95,7 @@
                                 <div class="small fw-semibold">@user.FullName</div>
                                 <div class="x-small text-muted">@user.Email</div>
                             </div>
-                            <span class="badge @(user.Role == Models.UserRole.Admin ? "bg-danger" : "bg-primary")">
+                            <span class="badge @(user.Role == UserRole.Admin ? "bg-danger" : "bg-primary")">
                                 @user.Role
                             </span>
                         </div>
