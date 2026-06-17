@@ -175,7 +175,7 @@ VALUES
 <p>I have visited Bali three times now, and every time I leave, I immediately start planning my return. There is something about this island that burrows into your soul — the fragrance of incense from morning offerings, the sound of gamelan music drifting from temples, the impossible green of the rice terraces in the early morning light.</p>
 
 <h2>Ubud: The Cultural Heart</h2>
-<p>Start your journey in Ubud, Bali's cultural capital. Skip the monkey forest (the monkeys are aggressive) and instead head to the Tegalalang Rice Terraces at 7am before the tour buses arrive. The terraces glow gold and emerald in the morning mist, and you will have them almost to yourself.</p>
+<p>Start your journey in Ubud, Bali"s cultural capital. Skip the monkey forest (the monkeys are aggressive) and instead head to the Tegalalang Rice Terraces at 7am before the tour buses arrive. The terraces glow gold and emerald in the morning mist, and you will have them almost to yourself.</p>
 <p>The Ubud Art Market is worth two hours of your time. Bargain confidently — start at 30% of the asking price and meet in the middle. I picked up a hand-carved wooden Garuda for 80,000 IDR after negotiating from 250,000 IDR.</p>
 
 <h2>Hidden Waterfall: Tibumana</h2>
