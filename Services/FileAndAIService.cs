@@ -59,13 +59,14 @@ namespace TravelBlog.Services
     }
 
     // ──────────────────────────────────────────────────────────
-    // AI Chatbot (OpenAI)
+    // AI Chatbot (Groq)
     // ──────────────────────────────────────────────────────────
     public interface IAIService
     {
         Task<string> GetBlogIdeasAsync(string destination, string? topic = null);
         Task<string> GetContentOutlineAsync(string title, string destination);
         Task<string> GetWritingAssistanceAsync(string prompt);
+        Task<List<string>> GetDestinationSuggestionsAsync(string query);
     }
 
     public class AIService : IAIService
@@ -77,8 +78,8 @@ namespace TravelBlog.Services
         public AIService(HttpClient http, IConfiguration config)
         {
             _http = http;
-            _apiKey = config["AISettings:OpenAIApiKey"] ?? "";
-            _model = config["AISettings:Model"] ?? "gpt-4o-mini";
+            _apiKey = config["AISettings:GroqApiKey"] ?? "";
+            _model = config["AISettings:Model"] ?? "llama-3.3-70b-versatile";
         }
 
         public async Task<string> GetBlogIdeasAsync(string destination, string? topic = null)
@@ -86,22 +87,37 @@ namespace TravelBlog.Services
             var prompt = string.IsNullOrEmpty(topic)
                 ? $"Generate 5 creative travel blog post ideas for {destination}. Return as a numbered list with title and one-sentence description."
                 : $"Generate 5 creative travel blog post ideas about '{topic}' in {destination}. Return as a numbered list.";
-            return await CallOpenAIAsync(prompt, "You are a creative travel blog writing assistant.");
+            return await CallGroqAsync(prompt, "You are a creative travel blog writing assistant.");
         }
 
         public async Task<string> GetContentOutlineAsync(string title, string destination)
         {
             var prompt = $"Create a detailed blog post outline for: '{title}' (travel destination: {destination}). Include intro, 4-5 main sections with subpoints, and conclusion.";
-            return await CallOpenAIAsync(prompt, "You are an expert travel writer helping structure blog posts.");
+            return await CallGroqAsync(prompt, "You are an expert travel writer helping structure blog posts.");
         }
 
         public async Task<string> GetWritingAssistanceAsync(string prompt)
-            => await CallOpenAIAsync(prompt, "You are a helpful travel blog writing assistant. Be creative, descriptive, and engaging.");
+            => await CallGroqAsync(prompt, "You are a helpful travel blog writing assistant. Be creative, descriptive, and engaging.");
 
-        private async Task<string> CallOpenAIAsync(string userMessage, string systemMessage)
+        public async Task<List<string>> GetDestinationSuggestionsAsync(string query)
         {
-            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_OPENAI_API_KEY_HERE")
-                return "🤖 AI features require an OpenAI API key. Please configure AISettings:OpenAIApiKey in appsettings.json.";
+            var prompt = $"Suggest up to 5 real travel destinations matching \"{query}\". Reply ONLY with a JSON array of strings, each in \"City, Country\" format. Example: [\"Bali, Indonesia\",\"Bangkok, Thailand\"]. No explanation.";
+            var raw = await CallGroqAsync(prompt, "You are a travel destination search assistant. Reply only with a JSON array.");
+            try
+            {
+                var start = raw.IndexOf('[');
+                var end = raw.LastIndexOf(']');
+                if (start >= 0 && end > start)
+                    return System.Text.Json.JsonSerializer.Deserialize<List<string>>(raw[start..(end + 1)]) ?? [];
+            }
+            catch { }
+            return [];
+        }
+
+        private async Task<string> CallGroqAsync(string userMessage, string systemMessage)
+        {
+            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_GROQ_API_KEY_HERE")
+                return "AI features require a Groq API key. Please configure AISettings:GroqApiKey in appsettings.json.";
 
             var payload = new
             {
@@ -115,7 +131,7 @@ namespace TravelBlog.Services
                 temperature = 0.7
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
             {
                 Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
             };

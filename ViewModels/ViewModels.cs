@@ -135,7 +135,7 @@ namespace TravelBlog.ViewModels
     {
         public int BlogId { get; set; }
 
-        [Required, MaxLength(1000)]
+        [Required, MinLength(10, ErrorMessage = "Comment must be at least 10 characters."), MaxLength(1000)]
         [Display(Name = "Your Comment")]
         public string Content { get; set; } = string.Empty;
     }

@@ -131,13 +131,23 @@ namespace TravelBlog.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["Error"] = "Comment cannot be empty.";
+                TempData["Error"] = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault() ?? "Invalid comment.";
                 return RedirectToAction(nameof(Detail), new { id = model.BlogId });
             }
 
             var userId = AuthHelper.GetUserId(HttpContext.Session)!.Value;
-            await _blogService.AddCommentAsync(model, userId);
-            TempData["Success"] = "Comment posted!";
+            try
+            {
+                await _blogService.AddCommentAsync(model, userId);
+                TempData["Success"] = "Comment posted!";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
             return RedirectToAction(nameof(Detail), new { id = model.BlogId });
         }
 
@@ -185,6 +195,16 @@ namespace TravelBlog.Controllers
         {
             var result = await _aiService.GetWritingAssistanceAsync(req.Prompt ?? "Help me write a travel blog.");
             return Json(new { success = true, content = result });
+        }
+
+        // GET /Blog/AiDestinations?query=xxx
+        [HttpGet, RequireLogin]
+        public async Task<IActionResult> AiDestinations(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 4)
+                return Json(new List<string>());
+            var suggestions = await _aiService.GetDestinationSuggestionsAsync(query.Trim());
+            return Json(suggestions);
         }
     }
 

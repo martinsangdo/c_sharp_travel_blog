@@ -122,7 +122,7 @@ VALUES
 -- Admin account
 ('admin',
  'admin@travelblog.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Site Administrator',
  'Managing the TravelBlog platform.',
  'Admin', 1, DATEADD(month,-6, GETUTCDATE())),
@@ -130,35 +130,35 @@ VALUES
 -- Regular users
 ('sarah_wanders',
  'sarah@example.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Sarah Chen',
  'Solo traveler | Foodie | 40+ countries visited. Based in Singapore.',
  'User', 1, DATEADD(month,-5, GETUTCDATE())),
 
 ('jakobontheroad',
  'jakob@example.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Jakob Müller',
  'Adventure photographer from Berlin. Mountains are my happy place.',
  'User', 1, DATEADD(month,-4, GETUTCDATE())),
 
 ('luna_explores',
  'luna@example.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Luna Pham',
  'Cultural explorer and budget travel expert. Vietnam-born, world-curious.',
  'User', 1, DATEADD(month,-3, GETUTCDATE())),
 
 ('marco_globe',
  'marco@example.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Marco Rossi',
  'Italian chef turned travel blogger. I eat my way around the world.',
  'User', 1, DATEADD(month,-2, GETUTCDATE())),
 
 ('admin2',
  'admin2@travelblog.com',
- '$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh',
+ '$2b$11$k1v0pSRXFr0y0H85/Vk/Yu3MoPft1lxCwV5ueae7iSl9RHlUNkibu',  -- BCrypt hash for "Password123!"
  'Content Moderator',
  'Second admin account for content moderation.',
  'Admin', 1, DATEADD(month,-1, GETUTCDATE()));

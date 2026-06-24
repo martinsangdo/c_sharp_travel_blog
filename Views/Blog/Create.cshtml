@@ -28,7 +28,51 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-8">
                         <label asp-for="Destination" class="form-label fw-semibold">Travel Destination</label>
-                        <input asp-for="Destination" class="form-control tb-input" placeholder="e.g. Bali, Indonesia" id="destinationInput" />
+                        <div class="position-relative">
+                            <input asp-for="Destination" class="form-control tb-input" placeholder="Type to search destination..." id="destinationInput" autocomplete="off" />
+                            <ul id="destinationDropdown" class="list-group position-absolute w-100 shadow-sm z-3" style="display:none; top:100%; left:0;"></ul>
+                        </div>
+                        <script>
+                            (function () {
+                                var input = document.getElementById('destinationInput');
+                                var dropdown = document.getElementById('destinationDropdown');
+                                var debounceTimer;
+
+                                input.addEventListener('input', function () {
+                                    clearTimeout(debounceTimer);
+                                    var q = input.value.trim();
+                                    if (q.length < 4) { dropdown.style.display = 'none'; return; }
+                                    debounceTimer = setTimeout(function () { fetchSuggestions(q); }, 350);
+                                });
+
+                                function fetchSuggestions(q) {
+                                    fetch('/Blog/AiDestinations?query=' + encodeURIComponent(q))
+                                        .then(function (r) { return r.json(); })
+                                        .then(function (items) {
+                                            dropdown.innerHTML = '';
+                                            if (!items.length) { dropdown.style.display = 'none'; return; }
+                                            items.forEach(function (name) {
+                                                var li = document.createElement('li');
+                                                li.className = 'list-group-item list-group-item-action';
+                                                li.style.cursor = 'pointer';
+                                                li.textContent = name;
+                                                li.addEventListener('mousedown', function (e) {
+                                                    e.preventDefault();
+                                                    input.value = name;
+                                                    dropdown.style.display = 'none';
+                                                });
+                                                dropdown.appendChild(li);
+                                            });
+                                            dropdown.style.display = 'block';
+                                        })
+                                        .catch(function () { dropdown.style.display = 'none'; });
+                                }
+
+                                input.addEventListener('blur', function () {
+                                    setTimeout(function () { dropdown.style.display = 'none'; }, 150);
+                                });
+                            })();
+                        </script>
                     </div>
                     <div class="col-md-4">
                         <label asp-for="Tags" class="form-label fw-semibold">Tags</label>
@@ -89,7 +133,7 @@
                     <span class="tb-ai-icon"><i class="fa fa-robot"></i></span>
                     <div>
                         <h6 class="mb-0 fw-bold">AI Writing Assistant</h6>
-                        <small class="text-muted">Get ideas and inspiration</small>
+                        <small class="text">Get ideas and inspiration</small>
                     </div>
                 </div>
 
@@ -101,7 +145,7 @@
 
                 <!-- Ideas Tab -->
                 <div class="tb-ai-tab-content active" id="tab-ideas">
-                    <p class="small text-muted">Get 5 blog post ideas for your destination.</p>
+                    <p class="small text">Get 5 blog post ideas for your destination.</p>
                     <input type="text" id="ai-destination" class="form-control tb-input mb-2" placeholder="Destination (e.g. Tokyo)" />
                     <input type="text" id="ai-topic" class="form-control tb-input mb-2" placeholder="Topic (optional)" />
                     <button class="btn btn-tb-outline w-100" onclick="aiGetIdeas()">
@@ -111,7 +155,7 @@
 
                 <!-- Outline Tab -->
                 <div class="tb-ai-tab-content" id="tab-outline">
-                    <p class="small text-muted">Create a blog outline from your title.</p>
+                    <p class="small text">Create a blog outline from your title.</p>
                     <input type="text" id="ai-outline-title" class="form-control tb-input mb-2" placeholder="Blog title" />
                     <input type="text" id="ai-outline-dest" class="form-control tb-input mb-2" placeholder="Destination" />
                     <button class="btn btn-tb-outline w-100" onclick="aiGetOutline()">
@@ -121,7 +165,7 @@
 
                 <!-- Assist Tab -->
                 <div class="tb-ai-tab-content" id="tab-assist">
-                    <p class="small text-muted">Ask the AI to help write or expand content.</p>
+                    <p class="small text">Ask the AI to help write or expand content.</p>
                     <textarea id="ai-prompt" class="form-control tb-input mb-2" rows="3"
                               placeholder="e.g. Write an intro paragraph about street food in Bangkok"></textarea>
                     <button class="btn btn-tb-outline w-100" onclick="aiAssist()">
@@ -137,7 +181,7 @@
                 <div id="ai-result" class="tb-ai-result d-none">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-semibold text-accent">AI Response</span>
-                        <button class="btn btn-sm btn-link p-0 text-muted" onclick="copyToEditor()">
+                        <button class="btn btn-sm btn-link p-0 text" onclick="copyToEditor()">
                             <i class="fa fa-copy me-1"></i>Copy to editor
                         </button>
                     </div>
