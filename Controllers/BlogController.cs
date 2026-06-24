@@ -21,7 +21,7 @@ namespace TravelBlog.Controllers
         public async Task<IActionResult> Index(int page = 1, string? search = null,
             string? destination = null, string? sortBy = "newest")
         {
-            var vm = await _blogService.GetPublicBlogsAsync(page, 9, search, destination, sortBy);
+            var vm = await _blogService.GetPublicBlogsAsync(page, 5, search, destination, sortBy);
             return View(vm);
         }
 

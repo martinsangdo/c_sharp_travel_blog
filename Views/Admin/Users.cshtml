@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Manage Users";
     var users = ViewBag.Users as List<TravelBlog.ViewModels.UserSummaryViewModel> ?? new();
+    var currentUserId = Context.Session.GetInt32("UserId");
 }
 
 <div class="tb-admin-layout">
@@ -62,13 +63,29 @@
                                     { <span class="badge bg-secondary">Inactive</span> }
                                 </td>
                                 <td>
-                                    <form asp-action="ToggleUser" asp-route-id="@u.Id" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm @(u.IsActive ? "btn-outline-warning" : "btn-outline-success")"
-                                                onclick="return confirm('@(u.IsActive ? "Deactivate" : "Activate") this user?')">
-                                            @(u.IsActive ? "Deactivate" : "Activate")
-                                        </button>
-                                    </form>
+                                    @if (u.Id == currentUserId)
+                                    {
+                                        <span class="text-muted small">You</span>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex gap-1">
+                                            <form asp-action="ToggleUser" asp-route-id="@u.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm @(u.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                        onclick="return confirm('@(u.IsActive ? "Deactivate" : "Activate") this user?')">
+                                                    @(u.IsActive ? "Deactivate" : "Activate")
+                                                </button>
+                                            </form>
+                                            <form asp-action="DeleteUser" asp-route-id="@u.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Permanently delete this user? This cannot be undone.')">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
                                 </td>
                             </tr>
                         }

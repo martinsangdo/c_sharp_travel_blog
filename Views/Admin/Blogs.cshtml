@@ -55,13 +55,23 @@
                                 </td>
                                 <td class="small text-muted">@blog.PublishedAt.ToString("MMM d, yyyy")</td>
                                 <td>
-                                    <form asp-action="DeleteBlog" asp-route-id="@blog.Id" method="post" class="d-inline"
-                                          onsubmit="return confirm('Permanently delete this blog?')">
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-danger">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="BlogComments" asp-route-id="@blog.Id"
+                                           class="btn btn-sm btn-outline-secondary" title="Manage Comments">
+                                            <i class="fa fa-comments"></i>
+                                            @if (blog.CommentCount > 0)
+                                            {
+                                                <span class="ms-1">@blog.CommentCount</span>
+                                            }
+                                        </a>
+                                        <form asp-action="DeleteBlog" asp-route-id="@blog.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Delete this blog post?')">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-danger" title="Delete">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }

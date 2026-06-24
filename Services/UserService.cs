@@ -17,6 +17,7 @@ namespace TravelBlog.Services
         Task<List<UserSummaryViewModel>> GetAllUsersAsync(int page, int pageSize, string? search);
         Task<int> CountUsersAsync(string? search);
         Task ToggleUserActiveAsync(int userId);
+        Task DeleteUserAsync(int userId);
     }
 
     public class UserService : IUserService
@@ -31,13 +32,13 @@ namespace TravelBlog.Services
         }
 
         public async Task<User?> GetByIdAsync(int id)
-            => await _db.Users.FindAsync(id);
+            => await _db.Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
 
         public async Task<User?> GetByEmailAsync(string email)
-            => await _db.Users.FirstOrDefaultAsync(u => u.Email == email.ToLower());
+            => await _db.Users.FirstOrDefaultAsync(u => u.Email == email.ToLower() && !u.IsDeleted);
 
         public async Task<User?> GetByUsernameAsync(string username)
-            => await _db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            => await _db.Users.FirstOrDefaultAsync(u => u.Username == username && !u.IsDeleted);
 
         public async Task<User> CreateAsync(RegisterViewModel model)
         {
@@ -95,7 +96,7 @@ namespace TravelBlog.Services
 
         public async Task<List<UserSummaryViewModel>> GetAllUsersAsync(int page, int pageSize, string? search)
         {
-            var query = _db.Users.AsQueryable();
+            var query = _db.Users.Where(u => !u.IsDeleted).AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(u => u.Username.Contains(search) || u.Email.Contains(search) || (u.FullName != null && u.FullName.Contains(search)));
 
@@ -118,7 +119,7 @@ namespace TravelBlog.Services
 
         public async Task<int> CountUsersAsync(string? search)
         {
-            var query = _db.Users.AsQueryable();
+            var query = _db.Users.Where(u => !u.IsDeleted).AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(u => u.Username.Contains(search) || u.Email.Contains(search) || (u.FullName != null && u.FullName.Contains(search)));
             return await query.CountAsync();
@@ -126,10 +127,19 @@ namespace TravelBlog.Services
 
         public async Task ToggleUserActiveAsync(int userId)
         {
-            var user = await _db.Users.FindAsync(userId)
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted)
                 ?? throw new KeyNotFoundException("User not found");
             user.IsActive = !user.IsActive;
             user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteUserAsync(int userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted)
+                ?? throw new KeyNotFoundException("User not found");
+            user.IsDeleted = true;
+            user.DeletedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
     }

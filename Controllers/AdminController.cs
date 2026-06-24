@@ -27,15 +27,38 @@ namespace TravelBlog.Controllers
             var now = DateTime.UtcNow;
             var monthStart = new DateTime(now.Year, now.Month, 1);
 
+            var last7Days = Enumerable.Range(0, 7)
+                .Select(i => now.Date.AddDays(-6 + i))
+                .ToList();
+
+            var rangeStart = last7Days.First();
+            var dailyCounts = await _db.Blogs
+                .Where(b => !b.IsDeleted && b.PublishedAt >= rangeStart)
+                .GroupBy(b => b.PublishedAt.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var topUsers = await _db.Blogs
+                .Where(b => !b.IsDeleted && b.Author != null)
+                .GroupBy(b => new { b.Author!.FullName, b.Author.Username })
+                .Select(g => new { Name = g.Key.FullName ?? g.Key.Username, Views = g.Sum(b => b.ViewCount) })
+                .OrderByDescending(x => x.Views)
+                .Take(10)
+                .ToListAsync();
+
             var vm = new AdminDashboardViewModel
             {
-                TotalUsers = await _db.Users.CountAsync(),
+                TotalUsers = await _db.Users.CountAsync(u => !u.IsDeleted),
                 TotalBlogs = await _db.Blogs.CountAsync(b => !b.IsDeleted),
                 TotalComments = await _db.Comments.CountAsync(c => !c.IsDeleted),
                 PublicBlogs = await _db.Blogs.CountAsync(b => !b.IsDeleted && b.IsPublic && b.Status == Models.BlogStatus.Published),
-                NewUsersThisMonth = await _db.Users.CountAsync(u => u.CreatedAt >= monthStart),
+                NewUsersThisMonth = await _db.Users.CountAsync(u => !u.IsDeleted && u.CreatedAt >= monthStart),
                 RecentBlogs = (await _blogService.GetAllBlogsAdminAsync(1, 5, null)).Blogs,
-                RecentUsers = await _userService.GetAllUsersAsync(1, 5, null)
+                RecentUsers = await _userService.GetAllUsersAsync(1, 5, null),
+                BlogChartLabels = last7Days.Select(d => d.ToString("MMM d")).ToList(),
+                BlogChartData = last7Days.Select(d => dailyCounts.FirstOrDefault(x => x.Date == d)?.Count ?? 0).ToList(),
+                TopUsersLabels = topUsers.Select(x => x.Name).ToList(),
+                TopUsersViewCounts = topUsers.Select(x => x.Views).ToList()
             };
             return View(vm);
         }
@@ -57,8 +80,33 @@ namespace TravelBlog.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleUser(int id)
         {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            if (currentUserId.HasValue && id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot deactivate your own account.";
+                return RedirectToAction(nameof(Users));
+            }
             await _userService.ToggleUserActiveAsync(id);
             TempData["Success"] = "User status updated.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        // POST /Admin/DeleteUser/5
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            if (currentUserId.HasValue && id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Users));
+            }
+            try
+            {
+                await _userService.DeleteUserAsync(id);
+                TempData["Success"] = "User deleted.";
+            }
+            catch (KeyNotFoundException) { TempData["Error"] = "User not found."; }
             return RedirectToAction(nameof(Users));
         }
 
@@ -67,6 +115,37 @@ namespace TravelBlog.Controllers
         {
             var vm = await _blogService.GetAllBlogsAdminAsync(page, 15, search);
             return View(vm);
+        }
+
+        // GET /Admin/BlogComments/5
+        public async Task<IActionResult> BlogComments(int id)
+        {
+            var blog = await _db.Blogs.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+            if (blog == null) return NotFound();
+
+            var comments = await _db.Comments
+                .Where(c => c.BlogId == id)
+                .Include(c => c.User)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.Blog = blog;
+            return View(comments);
+        }
+
+        // POST /Admin/DeleteComment/5
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteComment(int commentId, int blogId)
+        {
+            var comment = await _db.Comments.FindAsync(commentId);
+            if (comment != null)
+            {
+                comment.IsDeleted = true;
+                comment.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Comment deleted.";
+            }
+            return RedirectToAction(nameof(BlogComments), new { id = blogId });
         }
 
         // POST /Admin/DeleteBlog/5

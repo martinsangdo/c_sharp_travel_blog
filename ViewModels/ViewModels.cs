@@ -150,6 +150,10 @@ namespace TravelBlog.ViewModels
         public int NewUsersThisMonth { get; set; }
         public List<BlogCardViewModel> RecentBlogs { get; set; } = new();
         public List<UserSummaryViewModel> RecentUsers { get; set; } = new();
+        public List<string> BlogChartLabels { get; set; } = new();
+        public List<int> BlogChartData { get; set; } = new();
+        public List<string> TopUsersLabels { get; set; } = new();
+        public List<int> TopUsersViewCounts { get; set; } = new();
     }
 
     public class UserSummaryViewModel
